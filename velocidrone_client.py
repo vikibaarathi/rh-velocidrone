@@ -9,10 +9,10 @@ class VelocidroneClient:
         self.ws = None
 
 
-    def initialise(self, settings_path, message_callback, open_callback=None, close_callback=None, error_callback=None):
+    def initialise(self, message_callback, open_callback=None, close_callback=None, error_callback=None):
 
 
-        uri = f'ws://192.168.68.55:60003/velocidrone'
+        uri = f'ws://192.168.68.59:60003/velocidrone'
 
         # Create a WebSocket client
         self.ws = WebSocketApp(

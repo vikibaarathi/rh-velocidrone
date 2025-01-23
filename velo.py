@@ -13,7 +13,6 @@ class Velo():
     def __init__(self,rhapi):
         self.logger = logging.getLogger(__name__)
         self._rhapi = rhapi
-        self.startsocket(rhapi)
 
     def create_pilot(self,pilot_data, pilot_name):
         return {
@@ -23,39 +22,22 @@ class Velo():
             "lap": pilot_data["lap"]
         }
     def startsocket(self,args):
-        print("Hello World: Velocidrone")
-        race = self._rhapi.race
-        racestarttime = race.start_time_internal
-        print(racestarttime)
+        print("Velocidrone plugin started")
 
         client = VelocidroneClient()
-        client.initialise(
-            "settings.json",
-            self.message_handler,
-            open_callback=self.open_handler,
-            close_callback=self.close_handler,
-            error_callback=self.error_handler
-        )
-
-        
-    def startrace(self,args):
-        print(args)
-        monotonic_time = time.monotonic()
-        laptime = monotonic_time + 1
-        race = self._rhapi.race
-        # race.lap_add(0,laptime)
-
-        print(monotonic_time)
+        client.initialise(self.message_handler,open_callback=self.open_handler,close_callback=self.close_handler,error_callback=self.error_handler)
     
     def message_handler(self, ws, data):
         if len(data) == 0:
                 return
-
         race_data = json.loads(data)
         if "racestatus" in race_data:
             print(race_data["racestatus"].get("raceAction"))
+            print(race_data["racestatus"])
             if race_data["racestatus"].get("raceAction") == "start":
                 self.heat_data = []
+                race = self._rhapi.race
+                race.stage()
 
         elif "racedata" in race_data:
             for pilot_name, pilot_data in race_data["racedata"].items():
@@ -64,7 +46,6 @@ class Velo():
                 if pilot is None:
                     pilot = self.create_pilot(pilot_data, pilot_name)
                     self.heat_data.append(pilot)
-                    print(pilot)
                     if pilot_name == "JiaJia_FPV":
                         self.addlap(0,pilot_data["time"])
                 else:
@@ -72,7 +53,6 @@ class Velo():
                         if pilot["lap"] != pilot_data["lap"]:
                             pilot["laps"].append(pilot_data["time"])  # Convert to float
                             pilot["lap"] = pilot_data["lap"]
-                            print(pilot)
                             if pilot_name == "OMNI FPV":
                                 self.addlap(0,pilot_data["time"])
 

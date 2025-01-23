@@ -37,31 +37,11 @@ class VelocidroneClient:
     def heartbeat(self):
         while True:
             try:
-                if self.ws and self.ws.sock.connected:
+                if self.ws:
                     self.ws.send("")
                 time.sleep(10)  # Send a heartbeat every 10 seconds
             except Exception as e:
                 print(f"Heartbeat error: {e}")
                 break
 
-# Example usage:
-# def message_handler(ws, message):
-#     print("Message received:", message)
 
-# def open_handler(ws):
-#     print("WebSocket connection opened.")
-
-# def close_handler(ws, close_status_code, close_msg):
-#     print("WebSocket connection closed:", close_msg)
-
-# def error_handler(ws, error):
-#     print("WebSocket error:", error)
-
-# client = VelocidroneClient()
-# client.initialise(
-#     "settings.json",
-#     message_handler,
-#     open_callback=open_handler,
-#     close_callback=close_handler,
-#     error_callback=error_handler
-# )

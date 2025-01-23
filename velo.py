@@ -39,6 +39,11 @@ class Velo():
                 race = self._rhapi.race
                 race.stage()
 
+            if race_data["racestatus"].get("raceAction") == "abort":
+                self.heat_data = []
+                race = self._rhapi.race
+                race.stop(doSave=True)
+
         elif "racedata" in race_data:
             for pilot_name, pilot_data in race_data["racedata"].items():
                 pilot = next((e for e in self.heat_data if e["name"] == pilot_name), None)

@@ -13,6 +13,7 @@ class Velo():
     def __init__(self,rhapi):
         self.logger = logging.getLogger(__name__)
         self._rhapi = rhapi
+        self.client = VelocidroneClient()
 
     def create_pilot(self,pilot_data, pilot_name):
         return {
@@ -24,8 +25,8 @@ class Velo():
     def startsocket(self,args):
         print("Velocidrone plugin started")
 
-        client = VelocidroneClient()
-        client.initialise(self.message_handler,open_callback=self.open_handler,close_callback=self.close_handler,error_callback=self.error_handler)
+        
+        self.client.initialise(self.message_handler,open_callback=self.open_handler,close_callback=self.close_handler,error_callback=self.error_handler)
     
     def message_handler(self, ws, data):
         if len(data) == 0:
@@ -81,7 +82,8 @@ class Velo():
         print("WebSocket connection opened.")
 
     def close_handler(self,ws, close_status_code, close_msg):
-        print("WebSocket connection closed:", close_msg)
+        print("WebSocket connection closed:")
+        self.startsocket(self)
 
     def error_handler(self,ws, error):
         print("WebSocket error:", error)

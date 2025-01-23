@@ -28,20 +28,5 @@ class VelocidroneClient:
         self.ws_thread.daemon = True
         self.ws_thread.start()
 
-        # Start the heartbeat
-        threading.Thread(target=self.heartbeat, daemon=True).start()
-
     def run(self):
         self.ws.run_forever()
-
-    def heartbeat(self):
-        while True:
-            try:
-                if self.ws:
-                    self.ws.send("")
-                time.sleep(10)  # Send a heartbeat every 10 seconds
-            except Exception as e:
-                print(f"Heartbeat error: {e}")
-                break
-
-

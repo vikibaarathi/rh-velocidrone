@@ -28,5 +28,16 @@ class VelocidroneClient:
         self.ws_thread.daemon = True
         self.ws_thread.start()
 
+         # Start a ping thread to keep the connection alive
+        self.ping_thread = threading.Thread(target=self.send_pings)
+        self.ping_thread.daemon = True
+        self.ping_thread.start()
+
     def run(self):
         self.ws.run_forever()
+
+    def send_pings(self):
+        while True:
+            if self.ws and self.ws.sock and self.ws.sock.connected:
+                self.ws.send("")  # Send a ping
+            time.sleep(5)  # Adjust the interval as needed

@@ -1,0 +1,13 @@
+{
+    "name": "Velocidrone Lite",
+    "author": "Viki \"Barracuda\" Baarathi",
+    "author_uri": "https://github.com/vikibaarathi",
+    "description": "Simple implemenation of getting lap data from Velocidrone Websockets",
+    "info_uri": "https://github.com/vikibaarathi/rh-velocidrone",
+    "license": "MIT",
+    "license_uri": "https://github.com/vikibaarathi/rh-velocidrone?tab=MIT-1-ov-file#readme",
+    "version": "1.0.0",
+    "required_rhapi_version": "1.0",
+    "update_uri": null,
+    "text_domain": null
+}

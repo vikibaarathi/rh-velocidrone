@@ -1,12 +1,8 @@
 import json
-import requests
 import logging
-from sqlalchemy.ext.declarative import DeclarativeMeta
 from RHUI import UIField, UIFieldType
-from .datamanager import ClDataManager
 from .velocidrone_client import VelocidroneClient
-from RHUI import UIField, UIFieldType
-import time
+
 class Velo():
 
     heat_data = []

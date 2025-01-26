@@ -1,18 +1,14 @@
-import json
+
 import threading
 import time
-import os
 from websocket import WebSocketApp
 
 class VelocidroneClient:
     def __init__(self):
         self.ws = None
 
-
     def initialise(self, message_callback, open_callback=None, close_callback=None, error_callback=None):
-
-
-        uri = f'ws://192.168.68.59:60003/velocidrone'
+        uri = f'ws://192.168.68.51:60003/velocidrone'
 
         # Create a WebSocket client
         self.ws = WebSocketApp(
@@ -28,7 +24,7 @@ class VelocidroneClient:
         self.ws_thread.daemon = True
         self.ws_thread.start()
 
-         # Start a ping thread to keep the connection alive
+        # Start a ping thread to keep the connection alive
         self.ping_thread = threading.Thread(target=self.send_pings)
         self.ping_thread.daemon = True
         self.ping_thread.start()

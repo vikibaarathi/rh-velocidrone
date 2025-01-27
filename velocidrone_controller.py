@@ -12,7 +12,7 @@ class VeloController:
         self.vwm = VeloWebsocketManager()
         self.heat_data = []
         self._raceabort = False
-        
+        self._start_finish_gate = False
     def init_ui(self, args):
         VELO_PLUGIN_ID = "velocidrone-plugin"
 
@@ -38,10 +38,12 @@ class VeloController:
         return {
             "name": pilot_name,
             "holeshot": pilot_data["time"],
-            "laps": [pilot_data["time"]],
-            "lap": pilot_data["lap"],
-            "finished": pilot_data["finished"]
-        }    
+            "laps": [],
+            "lap": int(pilot_data["lap"]),
+            "finished": pilot_data.get("finished", "False").lower() == "true",
+            "uid": pilot_data["uid"],
+            "last_crossing_time": 0.0
+        }  
 
     def start_socket(self, args):
         ip_address = self._rhapi.db.option("velo-field-ip")
@@ -59,13 +61,21 @@ class VeloController:
         return
 
     def message_handler(self, ws, data):
+  
+
         if len(data) == 0:
                 return
         race_data = json.loads(data)
+
+        print(f"[DEBUG] Race Data: {race_data}")
+
+        if "FinishGate" in race_data:
+            self._start_finish_gate = race_data["FinishGate"].get("StartFinishGate").lower() == "true"
+            #print(f"startFinishGate set to {self._start_finish_gate}")
         
-        if "racestatus" in race_data:
-            print(race_data["racestatus"].get("raceAction"))
-            print(race_data["racestatus"])
+        elif "racestatus" in race_data:
+            #print(race_data["racestatus"].get("raceAction"))
+            #print(race_data["racestatus"])
             if race_data["racestatus"].get("raceAction") == "start":
 
                 self.heat_data = []
@@ -90,30 +100,80 @@ class VeloController:
                 pilot = next((e for e in self.heat_data if e["name"] == pilot_name), None)
 
                 if pilot is None:
+                    print(f"[DEBUG] Pilot not found: {pilot}, Pilot Data: {pilot_data}")
                     pilot = self.create_pilot(pilot_data, pilot_name)
                     self.heat_data.append(pilot)
-                    
-                    self.addlap(pilot_name,pilot_data["time"])
+
+                    time = float(pilot_data["time"])
+                    print("holeshot")
+                    print(pilot_data["uid"])
+                    print(time)
+                    self.addlap(pilot_data["uid"], time)
                 else:
+                    #print(f"[DEBUG] Pilot found: {pilot}, Pilot Data: {pilot_data}")
+
+                    # Process lap data based on start_finish_gate
+
                     try:
-                        if pilot["lap"] != pilot_data["lap"]:
-                            pilot["laps"].append(pilot_data["time"])  
-                            pilot["lap"] = pilot_data["lap"]
 
-                            self.addlap(pilot_name,pilot_data["time"])
+                        time = float(pilot_data["time"])  # cumulative race time
+                        new_lap = int(pilot_data["lap"])  # Convert lap to integer
+                        finished = pilot_data["finished"].lower() == "true"
 
-                        if pilot["finished"] != pilot_data["finished"]:
-                            pilot["finished"] = pilot_data["finished"]
-                            pilot["laps"].append(pilot_data["time"])  
-                            pilot["lap"] = pilot_data["lap"]
-                 
-                            self.addlap(pilot_name,pilot_data["time"])
+                        if self._start_finish_gate:
+                            # Handle start/finish gate scenario
+                            if new_lap > pilot["lap"]:  # Ensure new_lap is an integer
+                                if pilot["lap"] == 0 and new_lap == 1:
+                                    pilot["lap"] = 1
+                                    #print(f"[DEBUG] {pilot_name} (start_finish_gate=TRUE) started lap 1 at {time:.3f}s")
+                                else:
+                                    pilot["lap"] = new_lap
+                                    pilot["laps"].append(time)
+                                    completed_lap = new_lap - 1
+                                    #print(f"[DEBUG] {pilot_name} (start_finish_gate=TRUE) completed lap {completed_lap} at {time:.3f}s")
+                                    self.addlap(pilot_data["uid"], time)
 
+                            if not pilot["finished"] and finished:
+                                #print(f"[DEBUG] Finished Pilot: {pilot}")
+                                pilot["finished"] = True
+                                #print(f"[DEBUG] {pilot_name} finished race at {time:.3f}s")
+                                if pilot["lap"] == 1:
+                                    pilot["lap"] = 2
+                                    pilot["laps"].append(time)
+                                    #print(f"[DEBUG] Single-lap scenario for {pilot_name}, recorded final lap at {time:.3f}s")
+                                    self.addlap(pilot_data["uid"], time)
 
-                    except Exception as e:
-                        print(f"Error processing data for {pilot_name}: {e}")
+                        else:
+                            # Handle separate start and finish gates
+                            if abs(pilot["last_crossing_time"]) < 1e-5:
+                                pilot["last_crossing_time"] = time
+
+                            if new_lap > pilot["lap"]:  # Ensure new_lap is an integer
+                                if pilot["lap"] == 0 and new_lap == 1:
+                                    pilot["lap"] = 1
+                                else:
+                                    completed_lap_time = pilot["last_crossing_time"]
+                                    pilot["lap"] = new_lap
+                                    pilot["laps"].append(completed_lap_time)
+                                    completed_lap = new_lap - 1
+                                    #print(f"[DEBUG] {pilot_name} (start_finish_gate=FALSE) completed lap {completed_lap} at {completed_lap_time:.3f}s")
+                                    self.addlap(pilot_data["uid"], completed_lap_time)
+
+                            pilot["last_crossing_time"] = time
+
+                            #print(f"[DEBUG] Finished Pilot: {bool(pilot["finished"])} and Finished pilot Data: {finished} ")
+                            if not pilot["finished"] and finished:
+                                #print(f"[DEBUG] Finished Pilot: {pilot}")
+                                pilot["finished"] = True
+                                pilot["laps"].append(time)
+                                just_finished_lap = pilot["lap"] if pilot["lap"] != 0 else 1
+                                #print(f"[DEBUG] {pilot_name} finished race at {time:.3f}s on lap {just_finished_lap}")
+                                self.addlap(pilot_data["uid"], time)
+
+                    except Exception as e: print(f"Error processing data for {pilot_name}: {e}")
 
     def addlap(self, pilot_name, thetime):
+        print("add lap for pilot")
         race = self._rhapi.race
         starttime = race.start_time_internal
         laptime = starttime + float(thetime)
@@ -122,7 +182,9 @@ class VeloController:
         for key, value in pilots.items():
             pilotveloname = db.pilot_attribute_value(value, "velo_uid")
             if pilotveloname is not None:
-                if pilot_name == pilotveloname:
+                print(pilot_name)
+                print(pilotveloname)
+                if str(pilot_name) == str(pilotveloname):
                     race.lap_add(key,laptime)
 
     def open_handler(self, ws):

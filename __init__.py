@@ -1,9 +1,9 @@
 from eventmanager import Evt
-from .velo import Velo
+from .velocidrone_controller import VeloController
 
 def initialize(rhapi):
-    velo = Velo(rhapi)
-    rhapi.events.on(Evt.STARTUP, velo.startsocket)
+    velo = VeloController(rhapi)
+    rhapi.events.on(Evt.STARTUP, velo.init_ui)
 
 
 

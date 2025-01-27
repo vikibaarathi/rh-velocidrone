@@ -182,8 +182,6 @@ class VeloController:
         for key, value in pilots.items():
             pilotveloname = db.pilot_attribute_value(value, "velo_uid")
             if pilotveloname is not None:
-                print(pilot_name)
-                print(pilotveloname)
                 if str(pilot_name) == str(pilotveloname):
                     race.lap_add(key,laptime)
 
@@ -202,4 +200,30 @@ class VeloController:
         self._rhapi.ui.message_notify(msg)
         print(msg)
 
+    def start_race_from_rh(self,args):
+        print("Starting velocidrone race from RH")
+        payload = {"action": "start"}
+        message = json.dumps(payload)
+        self.vwm.send_message(message)
     
+    def stop_race_from_rh(self,args):
+        print("Starting velocidrone race from RH")
+        payload = {"action": "stop"}
+        message = json.dumps(payload)
+        self.vwm.send_message(message)
+
+    def set_current_heat(self,args):
+        print("Heat changed, sending current heat pilots to velocidrone")
+        print(args)
+        list_of_uid = []
+        race = self._rhapi.race
+        pilots = race.pilots
+        db = self._rhapi.db
+        for key, pilot_id in pilots.items():
+            pilot_uid = db.pilot_attribute_value(pilot_id, "velo_uid")
+            if pilot_uid:
+                list_of_uid.append(pilot_uid)
+        print(list_of_uid)
+        payload = {"action": "activate","pilots": list_of_uid}
+        message = json.dumps(payload)
+        self.vwm.send_message(message)

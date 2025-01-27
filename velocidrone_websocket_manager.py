@@ -1,5 +1,6 @@
 import threading
 import time
+import json
 from websocket import WebSocketApp
 
 class VeloWebsocketManager:
@@ -38,6 +39,16 @@ class VeloWebsocketManager:
             if self.ws and self.ws.sock and self.ws.sock.connected:
                 self.ws.send("")  # Send a ping
             time.sleep(5)
+
+    def send_message(self, action):
+        if self.ws and self.ws.sock and self.ws.sock.connected:
+            try:
+                self.ws.send(action)
+                print(f"Message sent: {action}")
+            except Exception as e:
+                print(f"Failed to send message: {e}")
+        else:
+            print("WebSocket is not connected. Unable to send message.")
 
     def disconnect(self, args):
         # Stop the ping thread

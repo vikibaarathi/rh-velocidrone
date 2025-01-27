@@ -5,7 +5,6 @@ from RHUI import UIField, UIFieldType
 
 class VeloController:
     
-
     def __init__(self, rhapi):
         self._rhapi = rhapi
         self.logger = logging.getLogger(__name__)
@@ -13,15 +12,15 @@ class VeloController:
         self.vwm = VeloWebsocketManager()
         self.heat_data = []
         self._raceabort = False
-
+        
     def init_ui(self, args):
         VELO_PLUGIN_ID = "velocidrone-plugin"
 
         fields = self._rhapi.fields
 
         # Register a custom pilot attribute in pilot section
-        velo_callsign_attribute = UIField(name="velo_callsign", label="Velocidrone Callsign", field_type=UIFieldType.TEXT)
-        fields.register_pilot_attribute(velo_callsign_attribute)
+        velo_uid_attribute = UIField(name="velo_uid", label="Velocidrone UID", field_type=UIFieldType.TEXT)
+        fields.register_pilot_attribute(velo_uid_attribute)
 
         # Create a new panel and set of UI elements
         ui = self._rhapi.ui
@@ -121,7 +120,7 @@ class VeloController:
         db = self._rhapi.db
         pilots = race.pilots
         for key, value in pilots.items():
-            pilotveloname = db.pilot_attribute_value(value, "velo_callsign")
+            pilotveloname = db.pilot_attribute_value(value, "velo_uid")
             if pilotveloname is not None:
                 if pilot_name == pilotveloname:
                     race.lap_add(key,laptime)

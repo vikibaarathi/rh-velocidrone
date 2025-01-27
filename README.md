@@ -19,7 +19,7 @@ This plugin allows RotorHazard to subscribe to Velocidrones websocket messages. 
 2. Execute the following command to install Web Socket dependency
 
 ```
-pipi install websocket-client
+pip install websocket-client
 ```
 3. Restart RotorHazard.
 

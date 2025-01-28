@@ -71,7 +71,7 @@ class VeloController:
 
         if "FinishGate" in race_data:
             self._start_finish_gate = race_data["FinishGate"].get("StartFinishGate").lower() == "true"
-            #print(f"startFinishGate set to {self._start_finish_gate}")
+            print(f"startFinishGate set to {self._start_finish_gate}")
         
         elif "racestatus" in race_data:
             #print(race_data["racestatus"].get("raceAction"))
@@ -87,13 +87,13 @@ class VeloController:
                 self.heat_data = []
                 self._raceabort = True
                 race = self._rhapi.race
-                race.stop()
+                #race.stop()
 
             elif race_data["racestatus"].get("raceAction") == "race finished" and not self._raceabort:
                 self.heat_data = []
                 race = self._rhapi.race
                 self._raceabort = False 
-                race.stop(doSave=True)
+                #race.stop()
 
         elif "racedata" in race_data:
             for pilot_name, pilot_data in race_data["racedata"].items():
@@ -134,14 +134,14 @@ class VeloController:
                                     self.addlap(pilot_data["uid"], time)
 
                             if not pilot["finished"] and finished:
-                                #print(f"[DEBUG] Finished Pilot: {pilot}")
+                                print(f"[DEBUG] Finished Pilot: {pilot}")
                                 pilot["finished"] = True
                                 #print(f"[DEBUG] {pilot_name} finished race at {time:.3f}s")
                                 if pilot["lap"] == 1:
                                     pilot["lap"] = 2
                                     pilot["laps"].append(time)
                                     #print(f"[DEBUG] Single-lap scenario for {pilot_name}, recorded final lap at {time:.3f}s")
-                                    self.addlap(pilot_data["uid"], time)
+                                self.addlap(pilot_data["uid"], time)
 
                         else:
                             # Handle separate start and finish gates
@@ -153,13 +153,16 @@ class VeloController:
                                     pilot["lap"] = 1
                                 else:
                                     completed_lap_time = pilot["last_crossing_time"]
+                                    print("Last completed lap time:")
+                                    print(completed_lap_time)
                                     pilot["lap"] = new_lap
                                     pilot["laps"].append(completed_lap_time)
                                     completed_lap = new_lap - 1
                                     #print(f"[DEBUG] {pilot_name} (start_finish_gate=FALSE) completed lap {completed_lap} at {completed_lap_time:.3f}s")
                                     self.addlap(pilot_data["uid"], completed_lap_time)
+                                    pilot["last_crossing_time"] = time
 
-                            pilot["last_crossing_time"] = time
+                            
 
                             #print(f"[DEBUG] Finished Pilot: {bool(pilot["finished"])} and Finished pilot Data: {finished} ")
                             if not pilot["finished"] and finished:
@@ -169,6 +172,7 @@ class VeloController:
                                 just_finished_lap = pilot["lap"] if pilot["lap"] != 0 else 1
                                 #print(f"[DEBUG] {pilot_name} finished race at {time:.3f}s on lap {just_finished_lap}")
                                 self.addlap(pilot_data["uid"], time)
+                                pilot["last_crossing_time"] = time
 
                     except Exception as e: print(f"Error processing data for {pilot_name}: {e}")
 
@@ -176,13 +180,17 @@ class VeloController:
         print("add lap for pilot")
         race = self._rhapi.race
         starttime = race.start_time_internal
+        print(starttime)
         laptime = starttime + float(thetime)
+ 
         db = self._rhapi.db
         pilots = race.pilots
         for key, value in pilots.items():
             pilotveloname = db.pilot_attribute_value(value, "velo_uid")
             if pilotveloname is not None:
                 if str(pilot_name) == str(pilotveloname):
+                    print(pilot_name)
+                    print(pilotveloname)
                     race.lap_add(key,laptime)
 
     def open_handler(self, ws):
@@ -202,13 +210,13 @@ class VeloController:
 
     def start_race_from_rh(self,args):
         print("Starting velocidrone race from RH")
-        payload = {"action": "start"}
+        payload = {"command": "startrace"}
         message = json.dumps(payload)
         self.vwm.send_message(message)
     
     def stop_race_from_rh(self,args):
         print("Starting velocidrone race from RH")
-        payload = {"action": "stop"}
+        payload = {"command": "abortrace"}
         message = json.dumps(payload)
         self.vwm.send_message(message)
 
@@ -224,6 +232,6 @@ class VeloController:
             if pilot_uid:
                 list_of_uid.append(pilot_uid)
         print(list_of_uid)
-        payload = {"action": "activate","pilots": list_of_uid}
+        payload = {"command": "activate","pilots": list_of_uid}
         message = json.dumps(payload)
         self.vwm.send_message(message)

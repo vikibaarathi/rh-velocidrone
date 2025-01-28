@@ -11,8 +11,10 @@ class VeloController:
 
         self.vwm = VeloWebsocketManager()
         self.heat_data = []
+        self.accumulator = []
         self._raceabort = False
         self._start_finish_gate = False
+        self.golden_number = 0
     def init_ui(self, args):
         VELO_PLUGIN_ID = "velocidrone-plugin"
 
@@ -38,7 +40,7 @@ class VeloController:
         return {
             "name": pilot_name,
             "holeshot": pilot_data["time"],
-            "laps": [],
+            "laps": [pilot_data["time"]],
             "lap": int(pilot_data["lap"]),
             "finished": pilot_data.get("finished", "False").lower() == "true",
             "uid": pilot_data["uid"],
@@ -71,11 +73,10 @@ class VeloController:
 
         if "FinishGate" in race_data:
             self._start_finish_gate = race_data["FinishGate"].get("StartFinishGate").lower() == "true"
-            print(f"startFinishGate set to {self._start_finish_gate}")
+
         
         elif "racestatus" in race_data:
-            #print(race_data["racestatus"].get("raceAction"))
-            #print(race_data["racestatus"])
+
             if race_data["racestatus"].get("raceAction") == "start":
 
                 self.heat_data = []
@@ -87,28 +88,26 @@ class VeloController:
                 self.heat_data = []
                 self._raceabort = True
                 race = self._rhapi.race
-                #race.stop()
+                race.stop()
 
             elif race_data["racestatus"].get("raceAction") == "race finished" and not self._raceabort:
                 self.heat_data = []
                 race = self._rhapi.race
                 self._raceabort = False 
-                #race.stop()
+                race.stop(doSave=True)
 
         elif "racedata" in race_data:
             for pilot_name, pilot_data in race_data["racedata"].items():
                 pilot = next((e for e in self.heat_data if e["name"] == pilot_name), None)
 
                 if pilot is None:
-                    print(f"[DEBUG] Pilot not found: {pilot}, Pilot Data: {pilot_data}")
+                    #print(f"[DEBUG] Pilot not found: {pilot}, Pilot Data: {pilot_data}")
                     pilot = self.create_pilot(pilot_data, pilot_name)
                     self.heat_data.append(pilot)
 
                     time = float(pilot_data["time"])
-                    print("holeshot")
-                    print(pilot_data["uid"])
-                    print(time)
                     self.addlap(pilot_data["uid"], time)
+                    self.accumulator.append(time)
                 else:
                     #print(f"[DEBUG] Pilot found: {pilot}, Pilot Data: {pilot_data}")
 
@@ -134,7 +133,7 @@ class VeloController:
                                     self.addlap(pilot_data["uid"], time)
 
                             if not pilot["finished"] and finished:
-                                print(f"[DEBUG] Finished Pilot: {pilot}")
+                                #print(f"[DEBUG] Finished Pilot: {pilot}")
                                 pilot["finished"] = True
                                 #print(f"[DEBUG] {pilot_name} finished race at {time:.3f}s")
                                 if pilot["lap"] == 1:
@@ -144,37 +143,105 @@ class VeloController:
                                 self.addlap(pilot_data["uid"], time)
 
                         else:
-                            # Handle separate start and finish gates
-                            if abs(pilot["last_crossing_time"]) < 1e-5:
-                                pilot["last_crossing_time"] = time
 
-                            if new_lap > pilot["lap"]:  # Ensure new_lap is an integer
-                                if pilot["lap"] == 0 and new_lap == 1:
-                                    pilot["lap"] = 1
-                                else:
-                                    completed_lap_time = pilot["last_crossing_time"]
-                                    print("Last completed lap time:")
-                                    print(completed_lap_time)
-                                    pilot["lap"] = new_lap
-                                    pilot["laps"].append(completed_lap_time)
-                                    completed_lap = new_lap - 1
-                                    #print(f"[DEBUG] {pilot_name} (start_finish_gate=FALSE) completed lap {completed_lap} at {completed_lap_time:.3f}s")
-                                    self.addlap(pilot_data["uid"], completed_lap_time)
-                                    pilot["last_crossing_time"] = time
+                            current_gate = int(pilot_data["gate"])
+                            finished_value = pilot_data["finished"]
+                            is_finished = finished_value.lower() == 'true'
 
-                            
-
-                            #print(f"[DEBUG] Finished Pilot: {bool(pilot["finished"])} and Finished pilot Data: {finished} ")
-                            if not pilot["finished"] and finished:
-                                #print(f"[DEBUG] Finished Pilot: {pilot}")
-                                pilot["finished"] = True
+                            if current_gate > 1:
+                                print("Accumulating laps")
+                                #self.accumulator.append(time)
                                 pilot["laps"].append(time)
-                                just_finished_lap = pilot["lap"] if pilot["lap"] != 0 else 1
-                                #print(f"[DEBUG] {pilot_name} finished race at {time:.3f}s on lap {just_finished_lap}")
-                                self.addlap(pilot_data["uid"], time)
-                                pilot["last_crossing_time"] = time
+                                # print(self.accumulator)
+                            
+                            if current_gate == 1 and new_lap == 2:
+
+                                self.golden_number = time - self.accumulator[-1]
+                                pilot["last_crossing_time"] = time - pilot["laps"][-1]
+                                race = self._rhapi.race
+                                starttime = race.start_time_internal
+                                #lap4time = self.accumulator[-1]
+                                lap4time = pilot["laps"][-1]
+
+                                flaptime = starttime +  lap4time
+                                pilotuid = pilot["uid"]
+                                db = self._rhapi.db
+                                pilots = race.pilots
+                                for key, value in pilots.items():
+                                    pilotveloid = db.pilot_attribute_value(value, "velo_uid")
+                                    if pilotveloid is not None:
+                                        if str(pilotuid) == str(pilotveloid):
+                                            print(pilot_name)
+                                            print(pilotveloid)
+                                            race.lap_add(key,flaptime)
+
+
+                                # self.accumulator = []
+                                # self.accumulator.append(time)
+
+                                pilot["laps"] = []
+                                pilot["laps"].append(time)
+                                # print(self.accumulator)
+                            
+                            if current_gate == 1 and new_lap > 2:
+                                
+                                race = self._rhapi.race
+                                starttime = race.start_time_internal
+                                #lap4time = self.accumulator[-1] - self.golden_number
+                                lap4time = pilot["laps"][-1] - pilot["last_crossing_time"]
+                                #self.golden_number = self.golden_number + time - self.accumulator[-1]
+                                pilot["last_crossing_time"] = pilot["last_crossing_time"] + time - pilot["laps"][-1]
+                                flaptime = starttime +  lap4time
+                                pilotuid = pilot["uid"]
+                                db = self._rhapi.db
+                                pilots = race.pilots
+                                for key, value in pilots.items():
+                                    pilotveloid = db.pilot_attribute_value(value, "velo_uid")
+                                    if pilotveloid is not None:
+                                        if str(pilotuid) == str(pilotveloid):
+                                            print(pilot_name)
+                                            print(pilotveloid)
+                                            race.lap_add(key,flaptime)
+
+                                # self.accumulator = []
+                                # self.accumulator.append(time)
+                                # print(self.accumulator)
+
+                                pilot["laps"] = []
+                                pilot["laps"].append(time)
+
+                            if is_finished:
+                                print("Handling final lap")
+                                #laptime = time - self.golden_number
+                                laptime = time - pilot["last_crossing_time"]
+
+                                race = self._rhapi.race
+                                starttime = race.start_time_internal
+                                print(starttime)
+                                flaptime = starttime + laptime
+                                print(flaptime)
+
+                                pilotuid = pilot["uid"]
+                                db = self._rhapi.db
+                                pilots = race.pilots
+                                for key, value in pilots.items():
+                                    pilotveloid = db.pilot_attribute_value(value, "velo_uid")
+                                    if pilotveloid is not None:
+                                        if str(pilotuid) == str(pilotveloid):
+                                            print(pilot_name)
+                                            print(pilotveloid)
+                                            race.lap_add(key,flaptime)
+
+
+                                
+
+                                # self.accumulator = []
+                                # self.golden_number = 0
+                                pilot["laps"] = []
+                                pilot["last_crossing_time"] = 0.0
 
                     except Exception as e: print(f"Error processing data for {pilot_name}: {e}")
+
 
     def addlap(self, pilot_name, thetime):
         print("add lap for pilot")

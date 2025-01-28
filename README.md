@@ -11,6 +11,7 @@ This plugin allows RotorHazard to subscribe to Velocidrones websocket messages. 
 * During a race, add laps to RotorHazard 
 * Allow race director to enter IP address of Velocidrone from Settings page
 * Allow race director to import the csv file exported from Velocidrone leaderboard.
+* Support for tracks with start/stop gate checked.
 * NOTE: This has been updated to only work with the upcoming release. Currently in Beta. 
 
 ## 2.0 Installation

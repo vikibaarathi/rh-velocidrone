@@ -25,16 +25,21 @@ class VeloController:
 
         # Create a new panel and set of UI elements
         ui = self._rhapi.ui
-        ui.register_panel(VELO_PLUGIN_ID, "Velocidrone Websockets", "settings")
-
+        ui.register_panel(VELO_PLUGIN_ID, "Velocidrone Controls", "run")
         # Create buttons to start and stop the websocket connection
         ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-connect", "Connect Websocket", self.start_socket)
         ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-disconnect", "Disconnect Websocket", self.stop_socket)
+        ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-activate", "Re-Activate Pilots", self.set_current_heat)
 
         # Input for the IP address
         velo_ip_address = UIField(name = "velo-field-ip", label = "Velocidrone IP Address", field_type = UIFieldType.TEXT, desc = "The IP address of where Velocidrone is running")  
         fields.register_option(velo_ip_address, VELO_PLUGIN_ID)
 
+        velo_auto_save = UIField(name = 'velo-check-autosave', label = 'Auto save results', field_type = UIFieldType.CHECKBOX, desc = "Auto save results when game ends in Velocidrone")
+        fields.register_option(velo_auto_save, VELO_PLUGIN_ID)
+
+        velo_enable_activation = UIField(name = 'velo-check-enable-activation', label = 'Enable pilot activation', field_type = UIFieldType.CHECKBOX, desc = "Check this to enable pilot activation in Velocidrone based on current heat.")
+        fields.register_option(velo_enable_activation, VELO_PLUGIN_ID)
     def start_socket(self, args):
         ip_address = self._rhapi.db.option("velo-field-ip")
         if not ip_address:
@@ -78,9 +83,14 @@ class VeloController:
             self._raceabort = True
             race.stop()
         elif action == "race finished" and not self._raceabort:
+            auto_save = self._rhapi.db.option("velo-check-autosave")
             self.heat_data.clear()
             self._raceabort = False
-            race.stop(doSave=True)
+            print(auto_save)
+            if auto_save == "1":
+                race.stop(doSave=True)
+            else:
+                race.stop()
 
     def handle_race_data(self, race_data):
         #DO FOR EACH PILOT LOOP HERE
@@ -163,7 +173,7 @@ class VeloController:
         self.logger.info(msg)
 
     def close_handler(self, ws, close_status_code, close_msg):
-        msg = "Websocket connection closed:" 
+        msg = "Websocket connection closed" 
         self._rhapi.ui.message_notify(msg)
         self.logger.info(msg)
 
@@ -183,20 +193,26 @@ class VeloController:
         self.send_command(payload)
 
     def set_current_heat(self,args):
-        print("Heat changed, sending current heat pilots to velocidrone")
-        print(args)
-        list_of_uid = []
-        race = self._rhapi.race
-        pilots = race.pilots
-        db = self._rhapi.db
-        for key, pilot_id in pilots.items():
-            pilot_uid = db.pilot_attribute_value(pilot_id, "velo_uid")
-            if pilot_uid:
-                list_of_uid.append(pilot_uid)
-        print(list_of_uid)
-        payload = {"command": "activate","pilots": list_of_uid}
-        self.send_command(payload)
+        activation_setting = self._rhapi.db.option("velo-check-enable-activation")
+        if activation_setting == "1":
+            print("Heat changed, sending current heat pilots to velocidrone")
+            list_of_uid = []
+            race = self._rhapi.race
+            pilots = race.pilots
+            db = self._rhapi.db
+            for key, pilot_id in pilots.items():
+                pilot_uid = db.pilot_attribute_value(pilot_id, "velo_uid")
+                if pilot_uid:
+                    list_of_uid.append(pilot_uid)
+            payload = {"command": "activate","pilots": list_of_uid}
+            result = self.send_command(payload)
+            if result:
+                self._rhapi.ui.message_notify("Pilots in this heat activated. ")
 
     def send_command(self, payload):
         message = json.dumps(payload)
-        self.vwm.send_message(message)
+        result = self.vwm.send_message(message)
+        if not result:
+            self._rhapi.ui.message_notify("Unable to communicate with velocidrone. Check connection.")
+            return False
+        return True

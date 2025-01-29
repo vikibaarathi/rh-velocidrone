@@ -19,17 +19,19 @@ This plugin allows RotorHazard to subscribe to Velocidrones websocket messages. 
 
 ## 2.0 Installation
 
-1. Download the zip folder, unzip it and place in the RotorHazard "Plugins" folder: `/src/server/plugins`
-2. Execute the following command to install Web Socket dependency
+1. Have RotorHazard 4.1 and above installed and running on a computer or a timer.
+2. RotorHazard & Velocidrone must be in the same network or same machine. 
+3. Download the zip folder, unzip it and place in the RotorHazard "Plugins" folder: `/src/server/plugins`
+4. Execute the following command to install Web Socket dependency
 
 ```
 pip install websocket-client
 ```
-3. Restart RotorHazard.
-4. Head over to settings -> plugins to verify plugin installation.
+5. Restart RotorHazard.
+6. Head over to settings -> plugins to verify plugin installation.
 
 <img width="1054" alt="Screenshot 2025-01-29 at 9 12 33 PM" src="https://github.com/user-attachments/assets/11319e86-d9ae-418a-aa1c-58fdc65b797d" />
-5. For more information on RotorHazard and the plugins mechanism, please check out the [RotorHazard Page](https://github.com/RotorHazard/RotorHazard)
+7. For more information on RotorHazard and the plugins mechanism, please check out the [RotorHazard Page](https://github.com/RotorHazard/RotorHazard)
 
 ## 3.0 User Guide
 

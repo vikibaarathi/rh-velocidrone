@@ -1,4 +1,4 @@
-# RotorHazard Velocidrone Lite - Plugin
+# Velocidrone RotorHazard Plugin
 
 ## 1.0 Introduction 
 

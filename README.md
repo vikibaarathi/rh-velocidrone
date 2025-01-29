@@ -36,8 +36,11 @@ pip install websocket-client
 2. On RotorHazard, head over to the "run" page and look for the newly created "Velocidrone Controls" panel. Enter the IP address of the machine where Velocidrone is running from.
 3. Hit Connect to establish a websocket. This only works if Velocidrone is running. Disconnect anytime.
 
-![Screenshot 2025-01-27 at 5 58 09 PM](https://github.com/user-attachments/assets/86539060-0a00-406c-a3b4-0b9b51921176)
 
+<img width="878" alt="Screenshot 2025-01-29 at 8 14 13 PM" src="https://github.com/user-attachments/assets/292acd4d-2d48-4206-8139-42e0bcdf9c00" />
+
+
+# Importing pilots 
 4. To import pilots from Velocidrone, head over to the "Format" page and scroll down to "Data Management" panel.
 5. The "Importer" drop down on the left now contains a new importer called "Velocidrone Pilot Import CSV". Have this selected.
 6. Select the CSV file downloaded from Velocidrone leaderboard.

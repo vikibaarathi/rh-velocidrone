@@ -1,6 +1,6 @@
-## RotorHazard Velocidrone Lite - Plugin
+# RotorHazard Velocidrone Lite - Plugin
 
-# 1.0 Introduction 
+## 1.0 Introduction 
 
 This plugin allows RotorHazard to subscribe to Velocidrones websocket messages. These messages can be used to do the following:
 
@@ -17,7 +17,7 @@ This plugin allows RotorHazard to subscribe to Velocidrones websocket messages. 
 * Allow auto save or manual save setting when game is complete
 * NOTE: This has been updated to only work with the upcoming release. Currently in Beta. 
 
-# 2.0 Installation
+## 2.0 Installation
 
 1. Download the zip folder, unzip it and place in the RotorHazard "Plugins" folder.
 2. Execute the following command to install Web Socket dependency
@@ -27,7 +27,7 @@ pip install websocket-client
 ```
 3. Restart RotorHazard.
 
-# 3.0 User Guide
+## 3.0 User Guide
 
 ### 3.1 Connecting to the Velocidrone websocket.
 1. On Velocidrone home screen, click on "Options" and on the "Main Settings" tab, search for "Websocket Communication". Switch this to "Yes"

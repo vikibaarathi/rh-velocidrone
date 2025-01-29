@@ -40,15 +40,20 @@ class VeloWebsocketManager:
                 self.ws.send("")  # Send a ping
             time.sleep(5)
 
+    
+
     def send_message(self, action):
         if self.ws and self.ws.sock and self.ws.sock.connected:
             try:
                 self.ws.send(action)
                 print(f"Message sent: {action}")
+                return True
             except Exception as e:
                 print(f"Failed to send message: {e}")
+                return False
         else:
             print("WebSocket is not connected. Unable to send message.")
+            return False
 
     def disconnect(self, args):
         # Stop the ping thread
@@ -63,5 +68,3 @@ class VeloWebsocketManager:
             self.ws_thread.join()
         if self.ping_thread and self.ping_thread.is_alive():
             self.ping_thread.join()
-
-        print("WebSocket connection closed.")

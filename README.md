@@ -29,7 +29,7 @@ pip install websocket-client
 4. Head over to settings -> plugins to verify plugin installation.
 
 <img width="1054" alt="Screenshot 2025-01-29 at 9 12 33 PM" src="https://github.com/user-attachments/assets/11319e86-d9ae-418a-aa1c-58fdc65b797d" />
-5. For more information on RotorHazard and the plugins mechanism, please check out the [RotorHazard page](https://github.com/RotorHazard/RotorHazard)
+5. For more information on RotorHazard and the plugins mechanism, please check out the [RotorHazard Page](https://github.com/RotorHazard/RotorHazard)
 
 ## 3.0 User Guide
 

@@ -2,24 +2,7 @@ import logging
 import json
 from .velocidrone_websocket_manager import VeloWebsocketManager
 from RHUI import UIField, UIFieldType
-
-class Pilot:
-    def __init__(self, uid, name, lap=0, finished=False, last_crossing_time=0.0):
-        self.uid = uid
-        self.name = name
-        self.lap = lap
-        self.finished = finished
-        self.laps = []
-        self.last_crossing_time = last_crossing_time
-
-    def add_time_of_gate(self, time):
-        self.laps.append(time)
-        self.lap = self.lap + 1
-
-    def mark_finished(self):
-        self.finished = True
-        if self.lap == 1:
-            self.lap = 2
+from .velocidrone_pilot_model import Pilot
 
 class VeloController:
     
@@ -51,17 +34,6 @@ class VeloController:
         # Input for the IP address
         velo_ip_address = UIField(name = "velo-field-ip", label = "Velocidrone IP Address", field_type = UIFieldType.TEXT, desc = "The IP address of where Velocidrone is running")  
         fields.register_option(velo_ip_address, VELO_PLUGIN_ID)
-    #REMOVE THIS WHOLE THING
-    # def create_pilot(self,pilot_data, pilot_name):
-    #     return {
-    #         "name": pilot_name,
-    #         "holeshot": pilot_data["time"],
-    #         "laps": [pilot_data["time"]],
-    #         "lap": int(pilot_data["lap"]),
-    #         "finished": pilot_data.get("finished", "False").lower() == "true",
-    #         "uid": pilot_data["uid"],
-    #         "last_crossing_time": 0.0
-    #     }  
 
     def start_socket(self, args):
         ip_address = self._rhapi.db.option("velo-field-ip")
@@ -76,7 +48,6 @@ class VeloController:
         self.vwm.disconnect(args)
         return
     
-
     def message_handler(self,ws, data):
         if not data:
             return
@@ -112,6 +83,7 @@ class VeloController:
             race.stop(doSave=True)
 
     def handle_race_data(self, race_data):
+        #DO FOR EACH PILOT LOOP HERE
         for pilot_name, pilot_data in race_data.items():
             pilot = next((p for p in self.heat_data if p.name == pilot_name), None)
             if not pilot:
@@ -184,182 +156,6 @@ class VeloController:
             if db.pilot_attribute_value(value, "velo_uid") == str(pilot_uid):
                 race.lap_add(key, lap_time)
                 return
-
-
-    #NEED TO REMOVE THIS LATER
-    # def message_handler(self, ws, data):
-  
-
-    #     if len(data) == 0:
-    #             return
-    #     race_data = json.loads(data)
-
-    #     print(f"[DEBUG] Race Data: {race_data}")
-
-    #     if "FinishGate" in race_data:
-    #         self._start_finish_gate = race_data["FinishGate"].get("StartFinishGate").lower() == "true"
-
-        
-    #     elif "racestatus" in race_data:
-
-    #         if race_data["racestatus"].get("raceAction") == "start":
-
-    #             self.heat_data = []
-    #             race = self._rhapi.race
-    #             self._raceabort = False
-    #             race.stage()
-
-    #         if race_data["racestatus"].get("raceAction") == "abort":
-    #             self.heat_data = []
-    #             self._raceabort = True
-    #             race = self._rhapi.race
-    #             race.stop()
-
-    #         elif race_data["racestatus"].get("raceAction") == "race finished" and not self._raceabort:
-    #             self.heat_data = []
-    #             race = self._rhapi.race
-    #             self._raceabort = False 
-    #             race.stop(doSave=True)
-
-    #     elif "racedata" in race_data:
-    #         for pilot_name, pilot_data in race_data["racedata"].items():
-    #             pilot = next((e for e in self.heat_data if e["name"] == pilot_name), None)
-
-    #             if pilot is None:
-                    
-    #                 pilot = self.create_pilot(pilot_data, pilot_name)
-    #                 self.heat_data.append(pilot)
-    #                 time = float(pilot_data["time"])
-    #                 self.addlap(pilot_data["uid"], time)
-                    
-    #             else:
-
-    #                 try:
-
-    #                     time = float(pilot_data["time"])  # cumulative race time
-    #                     new_lap = int(pilot_data["lap"])  # Convert lap to integer
-    #                     finished = pilot_data["finished"].lower() == "true"
-
-    #                     if self._start_finish_gate:
-    #                         # Handle start/finish gate scenario
-    #                         if new_lap > pilot["lap"]:  # Ensure new_lap is an integer
-    #                             if pilot["lap"] == 0 and new_lap == 1:
-    #                                 pilot["lap"] = 1
-                                   
-    #                             else:
-    #                                 pilot["lap"] = new_lap
-    #                                 pilot["laps"].append(time)
-    #                                 self.addlap(pilot_data["uid"], time)
-
-    #                         if not pilot["finished"] and finished:
-    #                             #print(f"[DEBUG] Finished Pilot: {pilot}")
-    #                             pilot["finished"] = True
-    #                             #print(f"[DEBUG] {pilot_name} finished race at {time:.3f}s")
-    #                             if pilot["lap"] == 1:
-    #                                 pilot["lap"] = 2
-    #                                 pilot["laps"].append(time)
-    #                                 #print(f"[DEBUG] Single-lap scenario for {pilot_name}, recorded final lap at {time:.3f}s")
-    #                             self.addlap(pilot_data["uid"], time)
-
-    #                     else:
-
-    #                         current_gate = int(pilot_data["gate"])
-    #                         finished_value = pilot_data["finished"]
-    #                         is_finished = finished_value.lower() == 'true'
-
-    #                         if current_gate > 1:
-    #                             pilot["laps"].append(time)
-                                
-    #                         if current_gate == 1 and new_lap == 2:
-   
-    #                             pilot["last_crossing_time"] = time - pilot["laps"][-1]
-    #                             race = self._rhapi.race
-    #                             starttime = race.start_time_internal     
-    #                             lap4time = pilot["laps"][-1]
-
-    #                             flaptime = starttime +  lap4time
-    #                             pilotuid = pilot["uid"]
-    #                             db = self._rhapi.db
-    #                             pilots = race.pilots
-    #                             for key, value in pilots.items():
-    #                                 pilotveloid = db.pilot_attribute_value(value, "velo_uid")
-    #                                 if pilotveloid is not None:
-    #                                     if str(pilotuid) == str(pilotveloid):
-    #                                         print(pilot_name)
-    #                                         print(pilotveloid)
-    #                                         race.lap_add(key,flaptime)
-
-    #                             pilot["laps"] = []
-    #                             pilot["laps"].append(time)
-                                                  
-    #                         if current_gate == 1 and new_lap > 2:
-                                
-    #                             race = self._rhapi.race
-    #                             starttime = race.start_time_internal
-                                
-    #                             lap4time = pilot["laps"][-1] - pilot["last_crossing_time"]
-                                
-    #                             pilot["last_crossing_time"] = pilot["last_crossing_time"] + time - pilot["laps"][-1]
-    #                             flaptime = starttime +  lap4time
-    #                             pilotuid = pilot["uid"]
-    #                             db = self._rhapi.db
-    #                             pilots = race.pilots
-    #                             for key, value in pilots.items():
-    #                                 pilotveloid = db.pilot_attribute_value(value, "velo_uid")
-    #                                 if pilotveloid is not None:
-    #                                     if str(pilotuid) == str(pilotveloid):
-    #                                         print(pilot_name)
-    #                                         print(pilotveloid)
-    #                                         race.lap_add(key,flaptime)
-
-
-    #                             pilot["laps"] = []
-    #                             pilot["laps"].append(time)
-
-    #                         if is_finished:
-    #                             print("Handling final lap")
-                            
-    #                             laptime = time - pilot["last_crossing_time"]
-
-    #                             race = self._rhapi.race
-    #                             starttime = race.start_time_internal
-    #                             print(starttime)
-    #                             flaptime = starttime + laptime
-    #                             print(flaptime)
-
-    #                             pilotuid = pilot["uid"]
-    #                             db = self._rhapi.db
-    #                             pilots = race.pilots
-    #                             for key, value in pilots.items():
-    #                                 pilotveloid = db.pilot_attribute_value(value, "velo_uid")
-    #                                 if pilotveloid is not None:
-    #                                     if str(pilotuid) == str(pilotveloid):
-    #                                         print(pilot_name)
-    #                                         print(pilotveloid)
-    #                                         race.lap_add(key,flaptime)
-
-    #                             pilot["laps"] = []
-    #                             pilot["last_crossing_time"] = 0.0
-
-    #                 except Exception as e: print(f"Error processing data for {pilot_name}: {e}")
-
-
-    # def addlap(self, pilot_name, thetime):
-    #     print("add lap for pilot")
-    #     race = self._rhapi.race
-    #     starttime = race.start_time_internal
-    #     print(starttime)
-    #     laptime = starttime + float(thetime)
- 
-    #     db = self._rhapi.db
-    #     pilots = race.pilots
-    #     for key, value in pilots.items():
-    #         pilotveloname = db.pilot_attribute_value(value, "velo_uid")
-    #         if pilotveloname is not None:
-    #             if str(pilot_name) == str(pilotveloname):
-    #                 print(pilot_name)
-    #                 print(pilotveloname)
-    #                 race.lap_add(key,laptime)
 
     def open_handler(self, ws):
         msg = "WebSocket connection opened."

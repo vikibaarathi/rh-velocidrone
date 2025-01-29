@@ -29,7 +29,7 @@ pip install websocket-client
 
 # 3.0 User Guide
 
-### Connecting to the Velocidrone websocket.
+### 3.1 Connecting to the Velocidrone websocket.
 1. On Velocidrone home screen, click on "Options" and on the "Main Settings" tab, search for "Websocket Communication". Switch this to "Yes"
 <img width="853" alt="Screenshot 2025-01-27 at 5 57 47 PM" src="https://github.com/user-attachments/assets/276a201d-c85f-4028-b52b-b9bcbbd0e158" />
 
@@ -40,12 +40,13 @@ pip install websocket-client
 <img width="878" alt="Screenshot 2025-01-29 at 8 14 13 PM" src="https://github.com/user-attachments/assets/292acd4d-2d48-4206-8139-42e0bcdf9c00" />
 
 
-### Importing pilots 
-4. To import pilots from Velocidrone, head over to the "Format" page and scroll down to "Data Management" panel.
-5. The "Importer" drop down on the left now contains a new importer called "Velocidrone Pilot Import CSV". Have this selected.
-6. Select the CSV file downloaded from Velocidrone leaderboard.
-7. Hit the "Import Data". Select if the following check box to wipe out existing list of pilots or update.
+
+### 3.2 Importing pilots 
+1. To import pilots from Velocidrone, head over to the "Format" page and scroll down to "Data Management" panel.
+2. The "Importer" drop down on the left now contains a new importer called "Velocidrone Pilot Import CSV". Have this selected.
+3. Select the CSV file downloaded from Velocidrone leaderboard.
+4. Hit the "Import Data". Select if the following check box to wipe out existing list of pilots or update.
 ![Screenshot 2025-01-27 at 5 58 25 PM](https://github.com/user-attachments/assets/dc10a3a8-83cb-4083-89c3-464d2ac03384)
 
 
-8. Thats it. Now create heats on RotorHazard as per usual...... 
+

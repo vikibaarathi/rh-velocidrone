@@ -53,6 +53,14 @@ pip install websocket-client
 3. Select the CSV file downloaded from Velocidrone leaderboard.
 4. Hit the "Import Data". Select if the following check box to wipe out existing list of pilots or update.
 ![Screenshot 2025-01-27 at 5 58 25 PM](https://github.com/user-attachments/assets/dc10a3a8-83cb-4083-89c3-464d2ac03384)
+5. Pilots can be added manually as well at the "Format" page. Make sure the Velocidrone ID is entered.
+6. TODO: MultiGP RaceSync pilot matching.
 
+### 3.3. Run a race
+1. Run races as per usual using RotorHazard. As long the Velocidrone ID is available, the laps will trigger in RH>
+2. Start or stop a race from either RH or Velocidrone. Both will work.
+3. Upon each lap complete, laps will be added in RH as long as the Velocidrone ID matches the pilots in RH.
+4. When a race completes, laps can be saved automatically or manually. Auto heat change is configured in RH itself.
+5. Activating pilots is an option. If selected, heat change will trigger activation or when pressing the "re-active" button. 
 
 

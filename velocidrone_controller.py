@@ -30,6 +30,9 @@ class VeloController:
         ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-connect", "Connect Websocket", self.start_socket)
         ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-disconnect", "Disconnect Websocket", self.stop_socket)
         ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-activate", "Re-Activate Pilots", self.set_current_heat)
+        ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-all-spectate", "Turn everyone to spectate", self.all_spectate)
+        ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-lock", "Lock Room", self.lock_room)
+        ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-unlock", "Unlock Room", self.unlock_room)
 
         # Input for the IP address
         velo_ip_address = UIField(name = "velo-field-ip", label = "Velocidrone IP Address", field_type = UIFieldType.TEXT, desc = "The IP address of where Velocidrone is running")  
@@ -40,6 +43,9 @@ class VeloController:
 
         velo_enable_activation = UIField(name = 'velo-check-enable-activation', label = 'Enable pilot activation', field_type = UIFieldType.CHECKBOX, desc = "Check this to enable pilot activation in Velocidrone based on current heat.")
         fields.register_option(velo_enable_activation, VELO_PLUGIN_ID)
+
+
+
     def start_socket(self, args):
         ip_address = self._rhapi.db.option("velo-field-ip")
         if not ip_address:
@@ -190,6 +196,18 @@ class VeloController:
     def stop_race_from_rh(self,args):
         print("Starting velocidrone race from RH")
         payload = {"command": "abortrace"}
+        self.send_command(payload)
+
+    def all_spectate(self,args):
+        payload = {"command": "allspectate"}
+        self.send_command(payload)
+    
+    def lock_room(self,args):
+        payload = {"command": "lock"}
+        self.send_command(payload)
+
+    def unlock_room(self,args):
+        payload = {"command": "unlock"}
         self.send_command(payload)
 
     def set_current_heat(self,args):

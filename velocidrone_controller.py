@@ -43,9 +43,7 @@ class VeloController:
 
         velo_enable_activation = UIField(name = 'velo-check-enable-activation', label = 'Enable pilot activation', field_type = UIFieldType.CHECKBOX, desc = "Check this to enable pilot activation in Velocidrone based on current heat.")
         fields.register_option(velo_enable_activation, VELO_PLUGIN_ID)
-
-
-
+        
     def start_socket(self, args):
         ip_address = self._rhapi.db.option("velo-field-ip")
         if not ip_address:

@@ -27,9 +27,9 @@ class VeloController:
         ui = self._rhapi.ui
         ui.register_panel(VELO_PLUGIN_ID, "Velocidrone Controls", "run")
         # Create buttons to start and stop the websocket connection
-        ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-connect", "Connect Websocket", self.start_socket)
-        ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-disconnect", "Disconnect Websocket", self.stop_socket)
-        ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-activate", "Re-Activate Pilots", self.set_current_heat)
+        ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-connect", "Connect Velocidrone", self.start_socket)
+        ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-disconnect", "Disconnect Velocidrone", self.stop_socket)
+        ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-activate", "Reactivate Pilots", self.set_current_heat)
         ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-all-spectate", "Turn everyone to spectate", self.all_spectate)
         ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-lock", "Lock Room", self.lock_room)
         ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-unlock", "Unlock Room", self.unlock_room)
@@ -74,6 +74,11 @@ class VeloController:
             self.handle_race_status(race_data["racestatus"])
         elif "racedata" in race_data:
             self.handle_race_data(race_data["racedata"])
+        elif "ActivateError" in race_data:
+            self.handle_error(race_data)
+
+    def handle_error(self, racedata):
+        self._rhapi.ui.message_notify("Some pilots are not yet in Velocidrone")
 
     def handle_race_status(self, status):
         race = self._rhapi.race

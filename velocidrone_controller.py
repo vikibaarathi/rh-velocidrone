@@ -62,7 +62,7 @@ class VeloController:
             return
         try:
             race_data = json.loads(data)
-            #self.logger.debug(f"Received Race Data: {race_data}")
+            self.logger.debug(f"Received Race Data: {race_data}")
             self.process_race_data(race_data)
         except json.JSONDecodeError as e:
             self.logger.error(f"Error decoding race data: {e}")
@@ -78,6 +78,7 @@ class VeloController:
             self.handle_error(race_data)
 
     def handle_error(self, racedata):
+        self.logger.info(racedata)
         self._rhapi.ui.message_notify("Some pilots are not yet in Velocidrone")
 
     def handle_race_status(self, status):
@@ -86,16 +87,18 @@ class VeloController:
         if action == "start":
             self.heat_data.clear()
             self._raceabort = False
+            self.logger.info("Start velocidrone race from RH")
             race.stage()
         elif action == "abort":
             self.heat_data.clear()
             self._raceabort = True
+            self.logger.info("Abort velocidrone race from RH")
             race.stop()
         elif action == "race finished" and not self._raceabort:
             auto_save = self._rhapi.db.option("velo-check-autosave")
             self.heat_data.clear()
             self._raceabort = False
-            print(auto_save)
+            self.logger.info("Race finished")
             if auto_save == "1":
                 race.stop(doSave=True)
             else:
@@ -109,7 +112,7 @@ class VeloController:
                 pilot = Pilot(uid=pilot_data["uid"], name=pilot_name, lap=int(pilot_data["lap"]))
                 self.heat_data.append(pilot)
 
-                ## NEED TO IMPLEMENT THIS METHOD
+                self.logger.debug(f"Holeshot: {pilot_name}")
                 self.add_lap(pilot.uid, float(pilot_data["time"]))
             else:
 
@@ -117,12 +120,14 @@ class VeloController:
                 self.process_pilot_lap(pilot, pilot_data, pilot_name)
 
     def process_pilot_lap(self, pilot:Pilot, pilot_data, pilot_name):
+
         try:
             time = float(pilot_data["time"])
             new_lap = int(pilot_data["lap"])
             finished = pilot_data.get("finished", "false").lower() == "true"
             
             # FOR START/STOP CHECKED
+            self.logger.debug(f"Lap detected for ss-checked:{pilot_data}")
             if self._start_finish_gate:
                 if new_lap > pilot.lap:
                     pilot.add_time_of_gate(time)
@@ -133,7 +138,7 @@ class VeloController:
                     self.add_lap(pilot.uid, time)
 
             else: #FOR START/ STOP UNCHECKED
-
+                self.logger.debug(f"Lap detected for ss-unchecked:{pilot_data}")
                 current_gate = int(pilot_data["gate"])
                 finished_value = pilot_data["finished"]
                 is_finished = finished_value.lower() == 'true'
@@ -165,6 +170,7 @@ class VeloController:
             self.logger.error(f"Error processing data for {pilot.name}: {e}")
 
     def add_lap(self, pilot_uid, time):
+        self.logger.debug(f"Add lap for pilot UID: {pilot_uid}")
         race = self._rhapi.race
         start_time = race.start_time_internal
         lap_time = start_time + time
@@ -192,12 +198,12 @@ class VeloController:
         self.logger.info(msg)
 
     def start_race_from_rh(self,args):
-        print("Starting velocidrone race from RH")
+        self.logger.info("Starting velocidrone race from RH")
         payload = {"command": "startrace"}
         self.send_command(payload)
     
     def stop_race_from_rh(self,args):
-        print("Starting velocidrone race from RH")
+        self.logger.info("Starting velocidrone race from RH")
         payload = {"command": "abortrace"}
         self.send_command(payload)
 
@@ -216,7 +222,7 @@ class VeloController:
     def set_current_heat(self,args):
         activation_setting = self._rhapi.db.option("velo-check-enable-activation")
         if activation_setting == "1":
-            print("Heat changed, sending current heat pilots to velocidrone")
+            self.logger.info("Heat changed, sending current heat pilots to velocidrone")
             list_of_uid = []
             race = self._rhapi.race
             pilots = race.pilots

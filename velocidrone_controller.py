@@ -75,11 +75,27 @@ class VeloController:
         elif "racedata" in race_data:
             self.handle_race_data(race_data["racedata"])
         elif "ActivateError" in race_data:
-            self.handle_error(race_data)
+            self.handle_error(race_data["ActivateError"])
 
     def handle_error(self, racedata):
-        self.logger.info(racedata)
-        self._rhapi.ui.message_notify("Some pilots are not yet in Velocidrone")
+        v_uid = racedata["UIDNotFound"]
+        
+        db = self._rhapi.db
+        pilot_list = db.pilot_ids_by_attribute("velo_uid", v_uid)
+
+        if pilot_list and len(pilot_list) == 1:
+            pilot_id = pilot_list[0]
+            pilot = db.pilot_by_id(pilot_id)
+            callsign = pilot.callsign
+            self.logger.info(f"Pilot not found:{callsign}")
+            self._rhapi.ui.message_notify(f"{callsign} is not found on the server.")
+        else:
+            self.logger.warning("Mismatch of Pilot UID. Please check pilot list or reimport. ")
+
+        
+        
+
+        
 
     def handle_race_status(self, status):
         race = self._rhapi.race

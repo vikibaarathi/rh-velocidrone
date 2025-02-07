@@ -33,6 +33,7 @@ class VeloController:
         ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-all-spectate", "Turn everyone to spectate", self.all_spectate)
         ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-lock", "Lock Room", self.lock_room)
         ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-unlock", "Unlock Room", self.unlock_room)
+        ui.register_quickbutton(VELO_PLUGIN_ID, "velo-btn-reimport", "Import pilots", self.import_pilot)
 
         # Input for the IP address
         velo_ip_address = UIField(name = "velo-field-ip", label = "Velocidrone IP Address", field_type = UIFieldType.TEXT, desc = "The IP address of where Velocidrone is running")  
@@ -62,7 +63,7 @@ class VeloController:
             return
         try:
             race_data = json.loads(data)
-            self.logger.debug(f"Received Race Data: {race_data}")
+            #self.logger.info(f"Received Race Data: {race_data}")
             self.process_race_data(race_data)
         except json.JSONDecodeError as e:
             self.logger.error(f"Error decoding race data: {e}")
@@ -76,6 +77,29 @@ class VeloController:
             self.handle_race_data(race_data["racedata"])
         elif "ActivateError" in race_data:
             self.handle_error(race_data["ActivateError"])
+        elif "pilotlist" in race_data:
+            self.handle_pilot_import(race_data["pilotlist"])
+
+    def handle_pilot_import(self, pilot_list):
+        db = self._rhapi.db
+        for pilot in pilot_list:
+            v_uid = pilot["uid"]
+            callsign = pilot["name"]
+            pilot_list = db.pilot_ids_by_attribute("velo_uid", v_uid)
+
+            if len(pilot_list) == 0:
+                
+                new_pilot = self._rhapi.db.pilot_add(name=callsign,callsign=callsign)
+                
+                self._rhapi.db.pilot_alter(new_pilot.id, attributes={
+                    'velo_uid': v_uid
+                })
+                self.logger.info(
+                    f"Created new pilot: Player Name={callsign}, "
+                    f"VelociDrone UID={v_uid}")
+                
+            else:
+                self.logger.info(f"{v_uid} already exists")
 
     def handle_error(self, racedata):
         v_uid = racedata["UIDNotFound"]      
@@ -231,6 +255,12 @@ class VeloController:
         payload = {"command": "unlock"}
         self._rhapi.ui.message_notify("Unlocking room")
         self.send_command(payload)
+
+    def import_pilot(self,args):
+        payload = {"command": "getpilots"}
+        self._rhapi.ui.message_notify("Importing pilots")
+        self.send_command(payload)
+        return
 
     def set_current_heat(self,args):
         activation_setting = self._rhapi.db.option("velo-check-enable-activation")

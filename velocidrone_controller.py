@@ -78,8 +78,7 @@ class VeloController:
             self.handle_error(race_data["ActivateError"])
 
     def handle_error(self, racedata):
-        v_uid = racedata["UIDNotFound"]
-        
+        v_uid = racedata["UIDNotFound"]      
         db = self._rhapi.db
         pilot_list = db.pilot_ids_by_attribute("velo_uid", v_uid)
 
@@ -91,11 +90,6 @@ class VeloController:
             self._rhapi.ui.message_notify(f"{callsign} is not found on the server.")
         else:
             self.logger.warning("Mismatch of Pilot UID. Please check pilot list or reimport. ")
-
-        
-        
-
-        
 
     def handle_race_status(self, status):
         race = self._rhapi.race
@@ -225,14 +219,17 @@ class VeloController:
 
     def all_spectate(self,args):
         payload = {"command": "allspectate"}
+        self._rhapi.ui.message_notify("Turning all pilots to spectate")
         self.send_command(payload)
     
     def lock_room(self,args):
         payload = {"command": "lock"}
+        self._rhapi.ui.message_notify("Locking room")
         self.send_command(payload)
 
     def unlock_room(self,args):
         payload = {"command": "unlock"}
+        self._rhapi.ui.message_notify("Unlocking room")
         self.send_command(payload)
 
     def set_current_heat(self,args):

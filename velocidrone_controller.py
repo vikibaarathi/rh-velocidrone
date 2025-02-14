@@ -177,28 +177,29 @@ class VeloController:
                 finished_value = pilot_data["finished"]
                 is_finished = finished_value.lower() == 'true'
 
-                if current_gate > 1:
-                    pilot.add_time_of_gate(time)
-                    
-                if current_gate == 1 and new_lap == 2:
-                    laptime = pilot.laps[-1]
-                    pilot.last_crossing_time = time - laptime
-                    self.add_lap(pilot.uid, laptime)
-                    pilot.laps.clear()
-                    pilot.add_time_of_gate(time)
-                                        
-                if current_gate == 1 and new_lap > 2:
-                    laptime = pilot.laps[-1] - pilot.last_crossing_time
-                    self.add_lap(pilot.uid, laptime)
-                    pilot.last_crossing_time = pilot.last_crossing_time + time - pilot.laps[-1]
-                    pilot.laps.clear()
-                    pilot.add_time_of_gate(time)
+                if time > pilot.last_crossing_time:
+                    if current_gate > 1:
+                        pilot.add_time_of_gate(time)
+         
+                    if current_gate == 1 and new_lap == 2:
+                        laptime = pilot.laps[-1]
+                        pilot.last_crossing_time = time - laptime
+                        self.add_lap(pilot.uid, laptime)
+                        pilot.laps.clear()
+                        pilot.add_time_of_gate(time)
+                                            
+                    if current_gate == 1 and new_lap > 2:
+                        laptime = pilot.laps[-1] - pilot.last_crossing_time
+                        self.add_lap(pilot.uid, laptime)
+                        pilot.last_crossing_time = pilot.last_crossing_time + time - pilot.laps[-1]
+                        pilot.laps.clear()
+                        pilot.add_time_of_gate(time)
 
-                if is_finished:
-                    laptime = time - pilot.last_crossing_time
-                    self.add_lap(pilot.uid, laptime)
-                    pilot.laps.clear()
-                    pilot.last_crossing_time = 0.0
+                    if is_finished:
+                        laptime = time - pilot.last_crossing_time
+                        self.add_lap(pilot.uid, laptime)
+                        pilot.laps.clear()
+                        pilot.last_crossing_time = 0.0
 
         except Exception as e:
             self.logger.error(f"Error processing data for {pilot.name}: {e}")

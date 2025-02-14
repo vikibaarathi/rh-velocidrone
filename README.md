@@ -1,21 +1,25 @@
 # Velocidrone RotorHazard Plugin
 
-## 1.0 Introduction 
+## 1.0 Introduction & Minimum Requirements
 
+### 1.1 Introduction
 This plugin allows RotorHazard to subscribe to Velocidrones websocket messages. These messages can be used to do the following:
 
-* "Start", "Stop & Discard" or "Stop & Save" races from Velocidrone.
-* "Start" or "Stop" races from RotorHazard.
+* "**Start**", "**Stop & Discard**" or "**Stop & Save**" races from Velocidrone.
+* "**Start**" or "Stop" races from RotorHazard.
 * Activate pilots in Velocidrone. Pilots in the current heat will switch to "flying" while everyone else will switch to "spectate".
-* Activation can be done automatically when changing heats or manually at the new Velocidrone Control Panael. 
-* During a race, detect the holeshot and add to RotorHazard
-* During a race, add laps to RotorHazard 
-* Allow race director to enter IP address of Velocidrone from Settings page
+* Activation can be done automatically when changing heats or manually at the Velocidrone Control Panael within the "**Run**" page. 
+* Adds holeshot / laps to RotorHazard.
+* Allow race director to enter IP address of Velocidrone from Settings page.
 * Allow race director to import the csv file exported from Velocidrone leaderboard.
-* Support for tracks with start/stop gate checked. Both lap times and total times will be in RotorHazard.
-* Tracks with different start stop gates are only able to get lap times and not total times.
-* Allow auto save or manual save setting when game is complete
-* NOTE: This has been updated to only work with the upcoming release. Currently in Beta. 
+* Allow auto save or manual save setting when game is complete.
+* Allow up to 8 pilots to fly at the same time.
+* Important Note:  **Support for tracks with start/stop gate checked.**
+
+### 1.2 Minimum Requirements
+
+1.2.1 Have latest RotorHazard 4.2 and above installed on a timer or on a laptop. Installations instrutions are available at http://rotorhazard.com.
+1.2.2 Track in velocidrone must have the Start & Stop gate checked. Support for different Start & Stop gates will be coming in next release. 
 
 ## 2.0 Installation
 

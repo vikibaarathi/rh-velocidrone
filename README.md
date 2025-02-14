@@ -18,8 +18,8 @@ This plugin allows RotorHazard to subscribe to Velocidrones websocket messages. 
 
 ### 1.2 Minimum Requirements
 
-1.2.1 Have latest RotorHazard 4.2 and above installed on a timer or on a laptop. Installations instrutions are available at http://rotorhazard.com.
-1.2.2 Track in velocidrone must have the Start & Stop gate checked. Support for different Start & Stop gates will be coming in next release. 
+1.2.1. Have latest RotorHazard 4.2 and above installed on a timer or on a laptop. Installations instrutions are available at http://rotorhazard.com.
+1.2.2. Track in velocidrone must have the Start & Stop gate checked. Support for different Start & Stop gates will be coming in next release. 
 
 ## 2.0 Installation
 

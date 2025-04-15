@@ -9,5 +9,6 @@
     "license_uri": "https://github.com/vikibaarathi/rh-velocidrone?tab=MIT-1-ov-file#readme",
     "version": "1.1.0",
     "required_rhapi_version": "1.0",
-    "category": ["Race Management"]
+    "category": ["Race Management"],
+    "dependencies": ["websocket-client==1.8.0"]
 }

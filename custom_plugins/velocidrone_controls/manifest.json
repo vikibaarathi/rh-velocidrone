@@ -1,0 +1,14 @@
+{
+    "domain": "velocidrone_controls",
+    "name": "Velocidrone Controls",
+    "author": "Viki \"Barracuda\" Baarathi",
+    "author_uri": "https://github.com/vikibaarathi",
+    "description": "Manage velocidrone races from Rotor Hazard",
+    "documentation_uri": "https://github.com/vikibaarathi/rh-velocidrone",
+    "license": "MIT",
+    "license_uri": "https://github.com/vikibaarathi/rh-velocidrone?tab=MIT-1-ov-file#readme",
+    "version": "1.1.0",
+    "required_rhapi_version": "1.0",
+    "category": ["Race Management"],
+    "dependencies": ["websocket-client==1.8.0"]
+}
